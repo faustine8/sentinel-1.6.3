@@ -194,6 +194,7 @@ public class CtSph implements Sph {
      * @return {@link ProcessorSlotChain} of the resource
      */
     ProcessorSlot<Object> lookProcessChain(ResourceWrapper resourceWrapper) {
+        // 从 chainMap 中获取；首次获取为 null，然后会构建链路
         ProcessorSlotChain chain = chainMap.get(resourceWrapper);
         if (chain == null) {
             synchronized (LOCK) {
@@ -310,6 +311,7 @@ public class CtSph implements Sph {
 
     @Override
     public Entry entry(String name, EntryType type, int count, Object... args) throws BlockException {
+        // 将 name 和 type 包装
         StringResourceWrapper resource = new StringResourceWrapper(name, type);
         return entry(resource, count, args);
     }
