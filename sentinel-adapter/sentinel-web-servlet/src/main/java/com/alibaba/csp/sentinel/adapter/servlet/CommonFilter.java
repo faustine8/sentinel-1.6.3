@@ -41,6 +41,7 @@ import com.alibaba.csp.sentinel.util.StringUtil;
 
 /***
  * Servlet filter that integrates with Sentinel.
+ * 与 Sentinel 集成的 servlet 过滤器
  *
  * @author youji.zj
  * @author Eric Zhao
@@ -56,6 +57,9 @@ public class CommonFilter implements Filter {
         httpMethodSpecify = Boolean.parseBoolean(filterConfig.getInitParameter(HTTP_METHOD_SPECIFY));
     }
 
+    /**
+     * 当请求过来的时候会执行这个 doFilter 方法
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -64,6 +68,7 @@ public class CommonFilter implements Filter {
         Entry httpMethodUrlEntry = null;
 
         try {
+            // 获取请求路径
             String target = FilterUtil.filterTarget(sRequest);
             // Clean and unify the URL.
             // For REST APIs, you have to clean the URL (e.g. `/foo/1` and `/foo/2` -> `/foo/:id`), or
@@ -79,6 +84,7 @@ public class CommonFilter implements Filter {
                 // Parse the request origin using registered origin parser.
                 String origin = parseOrigin(sRequest);
                 ContextUtil.enter(WebServletConfig.WEB_SERVLET_CONTEXT_NAME, origin);
+                // 资源检查-限流、熔断等
                 urlEntry = SphU.entry(target, EntryType.IN);
                 // Add method specification if necessary
                 if (httpMethodSpecify) {

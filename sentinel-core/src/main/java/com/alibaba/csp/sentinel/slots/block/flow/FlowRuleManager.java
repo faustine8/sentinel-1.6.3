@@ -128,9 +128,11 @@ public class FlowRuleManager {
 
         @Override
         public void configUpdate(List<FlowRule> value) {
+            // 构建限流规则集合 (map 的 key 是资源，value 是针对这个资源的流控规则集)
             Map<String, List<FlowRule>> rules = FlowRuleUtil.buildFlowRuleMap(value);
             if (rules != null) {
                 flowRules.clear();
+                // 将限流规则集合放入 flowRules 中，以 key-value 的形式存储
                 flowRules.putAll(rules);
             }
             RecordLog.info("[FlowRuleManager] Flow rules received: " + flowRules);

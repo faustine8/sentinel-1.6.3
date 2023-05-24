@@ -71,9 +71,11 @@ public class HttpEventTask implements Runnable {
             printWriter = new PrintWriter(
                 new OutputStreamWriter(outputStream, Charset.forName(SentinelConfig.charset())));
 
+            // 读取消息内容
             String line = in.readLine();
             CommandCenterLog.info("[SimpleHttpCommandCenter] socket income: " + line
                 + "," + socket.getInetAddress());
+            // 将读取到的内容封装成 CommandRequest 对象
             CommandRequest request = parseRequest(line);
             
             if (line.length() > 4 && StringUtil.equalsIgnoreCase("POST", line.substring(0, 4))) {
@@ -132,6 +134,7 @@ public class HttpEventTask implements Runnable {
             }
 
             // Validate the target command.
+            // 验证目标命令是否合法
             String commandName = HttpCommandUtils.getTarget(request);
             if (StringUtil.isBlank(commandName)) {
                 badRequest(printWriter, "Invalid command");
@@ -139,9 +142,12 @@ public class HttpEventTask implements Runnable {
             }
 
             // Find the matching command handler.
+            // 根据 commandName 找到匹配的命令处理程序
             CommandHandler<?> commandHandler = SimpleHttpCommandCenter.getHandler(commandName);
             if (commandHandler != null) {
+                // 执行 handle 方法
                 CommandResponse<?> response = commandHandler.handle(request);
+                // 响应请求
                 handleResponse(response, printWriter, outputStream);
             } else {
                 // No matching command handler.

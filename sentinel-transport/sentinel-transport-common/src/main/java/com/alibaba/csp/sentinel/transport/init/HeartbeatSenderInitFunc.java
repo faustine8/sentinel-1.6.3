@@ -56,8 +56,10 @@ public class HeartbeatSenderInitFunc implements InitFunc {
         }
 
         initSchedulerIfNeeded();
+        // 设置心跳任务发送间隔时间。默认 10s 发送一次
         long interval = retrieveInterval(sender);
         setIntervalIfNotExists(interval);
+        // 启动心跳任务
         scheduleHeartbeatTask(sender, interval);
     }
 
@@ -88,6 +90,7 @@ public class HeartbeatSenderInitFunc implements InitFunc {
             @Override
             public void run() {
                 try {
+                    // 发送心跳
                     sender.sendHeartbeat();
                 } catch (Throwable e) {
                     RecordLog.warn("[HeartbeatSender] Send heartbeat error", e);

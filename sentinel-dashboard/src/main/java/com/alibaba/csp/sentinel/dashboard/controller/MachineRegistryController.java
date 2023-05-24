@@ -55,9 +55,11 @@ public class MachineRegistryController {
             logger.info("Receive heartbeat from " + ip + " but port not set yet");
             return Result.ofFail(-1, "your port not set yet");
         }
+        // 获取 sentinel 的版本
         String sentinelVersion = StringUtil.isEmpty(v) ? "unknown" : v;
         version = version == null ? System.currentTimeMillis() : version;
         try {
+            // 构建 machineInfo 对象
             MachineInfo machineInfo = new MachineInfo();
             machineInfo.setApp(app);
             machineInfo.setAppType(appType);
@@ -67,6 +69,7 @@ public class MachineRegistryController {
             machineInfo.setHeartbeatVersion(version);
             machineInfo.setLastHeartbeat(System.currentTimeMillis());
             machineInfo.setVersion(sentinelVersion);
+            // 将接收到的应用信息添加到应用程序管理 appManagement
             appManagement.addMachine(machineInfo);
             return Result.ofSuccessMsg("success");
         } catch (Exception e) {

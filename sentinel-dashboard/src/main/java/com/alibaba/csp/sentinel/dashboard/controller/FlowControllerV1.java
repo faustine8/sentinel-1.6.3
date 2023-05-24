@@ -153,11 +153,13 @@ public class FlowControllerV1 {
         entity.setLimitApp(entity.getLimitApp().trim());
         entity.setResource(entity.getResource().trim());
         try {
+            // 将规则在 sentinel 服务端保存一份
             entity = repository.save(entity);
         } catch (Throwable throwable) {
             logger.error("Failed to add flow rule", throwable);
             return Result.ofThrowable(-1, throwable);
         }
+        // 将流控规则发布到客户端上去
         if (!publishRules(entity.getApp(), entity.getIp(), entity.getPort())) {
             logger.error("Publish flow rules failed after rule add");
         }
@@ -268,6 +270,7 @@ public class FlowControllerV1 {
     }
 
     private boolean publishRules(String app, String ip, Integer port) {
+        // 从 sentinel 服务端先找到规则
         List<FlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
         return sentinelApiClient.setFlowRuleOfMachine(app, ip, port, rules);
     }

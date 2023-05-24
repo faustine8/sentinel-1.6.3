@@ -141,6 +141,7 @@ public class SphU {
      * @throws BlockException if the block criteria is met, eg. when any rule's threshold is exceeded.
      */
     public static Entry entry(String name, EntryType type) throws BlockException {
+        // Env 类中有静态代码块会被调用
         return Env.sph.entry(name, type, 1, OBJECTS0);
     }
 

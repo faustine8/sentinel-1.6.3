@@ -46,8 +46,10 @@ public class ModifyRulesCommandHandler implements CommandHandler<String> {
 
     @Override
     public CommandResponse<String> handle(CommandRequest request) {
+        // 获取规则类型 (是流控还是降级)
         String type = request.getParam("type");
         // rule data in get parameter
+        // 获取参数数据
         String data = request.getParam("data");
         if (StringUtil.isNotEmpty(data)) {
             try {
@@ -62,28 +64,37 @@ public class ModifyRulesCommandHandler implements CommandHandler<String> {
 
         String result = "success";
 
+        // 限流处理
         if (FLOW_RULE_TYPE.equalsIgnoreCase(type)) {
+            // 将参数数据恢复成「流控规则」列表
             List<FlowRule> flowRules = JSONArray.parseArray(data, FlowRule.class);
+            // 加载限流规则
             FlowRuleManager.loadRules(flowRules);
             if (!writeToDataSource(getFlowDataSource(), flowRules)) {
                 result = WRITE_DS_FAILURE_MSG;
             }
             return CommandResponse.ofSuccess(result);
-        } else if (AUTHORITY_RULE_TYPE.equalsIgnoreCase(type)) {
+        }
+        // 授权处理
+        else if (AUTHORITY_RULE_TYPE.equalsIgnoreCase(type)) {
             List<AuthorityRule> rules = JSONArray.parseArray(data, AuthorityRule.class);
             AuthorityRuleManager.loadRules(rules);
             if (!writeToDataSource(getAuthorityDataSource(), rules)) {
                 result = WRITE_DS_FAILURE_MSG;
             }
             return CommandResponse.ofSuccess(result);
-        } else if (DEGRADE_RULE_TYPE.equalsIgnoreCase(type)) {
+        }
+        // 降级(熔断)处理
+        else if (DEGRADE_RULE_TYPE.equalsIgnoreCase(type)) {
             List<DegradeRule> rules = JSONArray.parseArray(data, DegradeRule.class);
             DegradeRuleManager.loadRules(rules);
             if (!writeToDataSource(getDegradeDataSource(), rules)) {
                 result = WRITE_DS_FAILURE_MSG;
             }
             return CommandResponse.ofSuccess(result);
-        } else if (SYSTEM_RULE_TYPE.equalsIgnoreCase(type)) {
+        }
+        // 系统规则处理
+        else if (SYSTEM_RULE_TYPE.equalsIgnoreCase(type)) {
             List<SystemRule> rules = JSONArray.parseArray(data, SystemRule.class);
             SystemRuleManager.loadRules(rules);
             if (!writeToDataSource(getSystemSource(), rules)) {

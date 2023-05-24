@@ -363,11 +363,13 @@ public class SentinelApiClient {
             AssertUtil.notEmpty(app, "Bad app name");
             AssertUtil.notEmpty(ip, "Bad machine IP");
             AssertUtil.isTrue(port > 0, "Bad machine port");
+            // 将规则转换为 string
             String data = JSON.toJSONString(
                     entities.stream().map(r -> r.toRule()).collect(Collectors.toList()));
             Map<String, String> params = new HashMap<>(2);
             params.put("type", type);
             params.put("data", data);
+            // 发送请求
             String result = executeCommand(app, ip, port, SET_RULES_PATH, params, true).get();
             logger.info("setRules: {}", result);
             return true;

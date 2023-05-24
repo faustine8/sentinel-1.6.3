@@ -61,14 +61,18 @@ public class SimpleHttpHeartbeatSender implements HeartbeatSender {
             RecordLog.info("[SimpleHttpHeartbeatSender] Runtime port not initialized, won't send heartbeat");
             return false;
         }
+        // 获取 socket 连接地址
         InetSocketAddress addr = getAvailableAddress();
         if (addr == null) {
             return false;
         }
 
+        // 封装 SimpleHttpRequest 对象，发送路径为 '/registry/machine'
         SimpleHttpRequest request = new SimpleHttpRequest(addr, HEARTBEAT_PATH);
+        // 设置请求参数
         request.setParams(heartBeat.generateCurrentMessage());
         try {
+            // 发送请求
             SimpleHttpResponse response = httpClient.post(request);
             if (response.getStatusCode() == OK_STATUS) {
                 return true;

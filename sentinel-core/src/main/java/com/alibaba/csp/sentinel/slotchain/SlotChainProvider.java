@@ -45,12 +45,14 @@ public final class SlotChainProvider {
             return builder.build();
         }
 
+        // 解析链路构造器。默认会使用 HotParamSlotChainBuilder 热点参数链路构造器
         resolveSlotChainBuilder();
 
         if (builder == null) {
             RecordLog.warn("[SlotChainProvider] Wrong state when resolving slot chain builder, using default");
             builder = new DefaultSlotChainBuilder();
         }
+        // 构建
         return builder.build();
     }
 

@@ -46,9 +46,11 @@ public class FlowRuleChecker {
         if (ruleProvider == null || resource == null) {
             return;
         }
+        // 根据资源名称找到对应的限流规则
         Collection<FlowRule> rules = ruleProvider.apply(resource.getName());
         if (rules != null) {
             for (FlowRule rule : rules) {
+                // 遍历规则，依次判断是否通过
                 if (!canPassCheck(rule, context, node, count, prioritized)) {
                     throw new FlowException(rule.getLimitApp(), rule);
                 }
@@ -68,10 +70,12 @@ public class FlowRuleChecker {
             return true;
         }
 
+        // 判断是否集群
         if (rule.isClusterMode()) {
             return passClusterCheck(rule, context, node, acquireCount, prioritized);
         }
 
+        // 不是集群则调用本地检查
         return passLocalCheck(rule, context, node, acquireCount, prioritized);
     }
 
@@ -82,6 +86,7 @@ public class FlowRuleChecker {
             return true;
         }
 
+        // 获取规则处理器进行检查
         return rule.getRater().canPass(selectedNode, acquireCount, prioritized);
     }
 

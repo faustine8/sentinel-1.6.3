@@ -66,6 +66,7 @@ public class SimpleHttpCommandCenter implements CommandCenter {
     @SuppressWarnings("rawtypes")
     public void beforeStart() throws Exception {
         // Register handlers
+        // 注册处理器。Map 的 key 是访问的路径，value 是具体的处理器类。
         Map<String, CommandHandler> handlers = CommandHandlerProvider.getInstance().namedHandlers();
         registerCommands(handlers);
     }
@@ -73,6 +74,7 @@ public class SimpleHttpCommandCenter implements CommandCenter {
     @Override
     public void start() throws Exception {
         int nThreads = Runtime.getRuntime().availableProcessors();
+        // 创建一个线程执行器
         this.bizExecutor = new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
             new ArrayBlockingQueue<Runnable>(10),
             new NamedThreadFactory("sentinel-command-center-service-executor"),
@@ -84,11 +86,13 @@ public class SimpleHttpCommandCenter implements CommandCenter {
                 }
             });
 
+        // 创建线程任务
         Runnable serverInitTask = new Runnable() {
             int port;
 
             {
                 try {
+                    // 从配置文件中获取端口号，如果没有配置则取默认的 8719
                     port = Integer.parseInt(TransportConfig.getPort());
                 } catch (Exception e) {
                     port = DEFAULT_PORT;
@@ -98,11 +102,13 @@ public class SimpleHttpCommandCenter implements CommandCenter {
             @Override
             public void run() {
                 boolean success = false;
+                // 获取可用的端口，用以创建一个 ServerSocket
                 ServerSocket serverSocket = getServerSocketFromBasePort(port);
 
                 if (serverSocket != null) {
                     CommandCenterLog.info("[CommandCenter] Begin listening at port " + serverSocket.getLocalPort());
                     socketReference = serverSocket;
+                    // 在主线程中启动 ServerThread 用以接收 socket 请求
                     executor.submit(new ServerThread(serverSocket));
                     success = true;
                     port = serverSocket.getLocalPort();
@@ -120,6 +126,7 @@ public class SimpleHttpCommandCenter implements CommandCenter {
 
         };
 
+        // 启动线程
         new Thread(serverInitTask).start();
     }
 
@@ -134,6 +141,7 @@ public class SimpleHttpCommandCenter implements CommandCenter {
         int tryCount = 0;
         while (true) {
             try {
+                // 如果发现端口号被占用，则尝试 3 次；端口号 +1 后再尝试 3 次。
                 ServerSocket server = new ServerSocket(basePort + tryCount / 3, 100);
                 server.setReuseAddress(true);
                 return server;
@@ -185,8 +193,10 @@ public class SimpleHttpCommandCenter implements CommandCenter {
             while (true) {
                 Socket socket = null;
                 try {
+                    // Socket 监听
                     socket = this.serverSocket.accept();
                     setSocketSoTimeout(socket);
+                    // 将接收到的 socket 封装到 HttpEventTask 中由业务线程去处理
                     HttpEventTask eventTask = new HttpEventTask(socket);
                     bizExecutor.submit(eventTask);
                 } catch (Exception e) {

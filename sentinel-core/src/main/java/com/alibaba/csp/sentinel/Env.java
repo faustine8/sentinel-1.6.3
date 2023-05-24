@@ -33,6 +33,7 @@ public class Env {
 
     static {
         // If init fails, the process will exit.
+        // 执行初始化
         InitExecutor.doInit();
     }
 

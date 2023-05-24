@@ -38,17 +38,21 @@ public final class InitExecutor {
      * The initialization will be executed only once.
      */
     public static void doInit() {
+        // 判断是否是第一次初始化，不是则直接返回
         if (!initialized.compareAndSet(false, true)) {
             return;
         }
         try {
+            // 此处去加载 'META-INF/services/' 目录下配置的所有实现了 InitFunc 接口的类
             ServiceLoader<InitFunc> loader = ServiceLoader.load(InitFunc.class);
             List<OrderWrapper> initList = new ArrayList<OrderWrapper>();
             for (InitFunc initFunc : loader) {
                 RecordLog.info("[InitExecutor] Found init func: " + initFunc.getClass().getCanonicalName());
+                // 将加载完的所有类排序
                 insertSorted(initList, initFunc);
             }
             for (OrderWrapper w : initList) {
+                // 执行每个 InitFunc 实现类的 init() 方法，init() 方法又会去加载其他所需资源
                 w.func.init();
                 RecordLog.info(String.format("[InitExecutor] Executing %s with order %d",
                     w.func.getClass().getCanonicalName(), w.order));

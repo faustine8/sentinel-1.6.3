@@ -94,6 +94,7 @@ public final class FlowRuleUtil {
         }
         Map<K, Set<FlowRule>> tmpMap = new ConcurrentHashMap<>();
 
+        // 遍历限流规则
         for (FlowRule rule : list) {
             if (!isValidRule(rule)) {
                 RecordLog.warn("[FlowRuleManager] Ignoring invalid flow rule when loading new flow rules: " + rule);
@@ -106,6 +107,7 @@ public final class FlowRuleUtil {
                 rule.setLimitApp(RuleConstant.LIMIT_APP_DEFAULT);
             }
 
+            // 根据不同的「流控模式+流控效果」生成不同的控制器
             TrafficShapingController rater = generateRater(rule);
             rule.setRater(rater);
 
@@ -137,14 +139,18 @@ public final class FlowRuleUtil {
     }
 
     private static TrafficShapingController generateRater(/*@Valid*/ FlowRule rule) {
+        // 如果「阈值类型」是 QPS，则根据不同的流通效果生成不同的控制器。(这个地方使用的是「策略模式」)
         if (rule.getGrade() == RuleConstant.FLOW_GRADE_QPS) {
             switch (rule.getControlBehavior()) {
                 case RuleConstant.CONTROL_BEHAVIOR_WARM_UP:
+                    // 流控效果为「预热」的控制器
                     return new WarmUpController(rule.getCount(), rule.getWarmUpPeriodSec(),
                         ColdFactorProperty.coldFactor);
                 case RuleConstant.CONTROL_BEHAVIOR_RATE_LIMITER:
+                    // 流控效果为「排队等待(匀速通过)」的控制器
                     return new RateLimiterController(rule.getMaxQueueingTimeMs(), rule.getCount());
                 case RuleConstant.CONTROL_BEHAVIOR_WARM_UP_RATE_LIMITER:
+                    // 流控效果为「预热+排队等待」的控制器
                     return new WarmUpRateLimiterController(rule.getCount(), rule.getWarmUpPeriodSec(),
                         rule.getMaxQueueingTimeMs(), ColdFactorProperty.coldFactor);
                 case RuleConstant.CONTROL_BEHAVIOR_DEFAULT:
@@ -152,6 +158,7 @@ public final class FlowRuleUtil {
                     // Default mode or unknown mode: default traffic shaping controller (fast-reject).
             }
         }
+        // 默认是「快速失败」
         return new DefaultController(rule.getCount(), rule.getGrade());
     }
 

@@ -36,7 +36,9 @@ public class CommandCenterInitFunc implements InitFunc {
             return;
         }
 
+        // 注册处理器
         commandCenter.beforeStart();
+        // 启动命令中心
         commandCenter.start();
         RecordLog.info("[CommandCenterInit] Starting command center: "
                 + commandCenter.getClass().getCanonicalName());
